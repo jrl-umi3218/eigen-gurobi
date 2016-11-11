@@ -19,7 +19,7 @@
 
 // boost
 #define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE Eigen_QuadProg
+#define BOOST_TEST_MODULE Eigen_Gurobi
 #include <boost/test/unit_test.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <boost/test/floating_point_comparison.hpp>
@@ -28,7 +28,7 @@
 #include <Eigen/Dense>
 
 // eigen-quadprog
-#include <QuadProg.h>
+#include <Gurobi.h>
 
 
 struct QP1
@@ -52,12 +52,12 @@ struct QP1
 
 
 		Aeq << 1., -1., 1., 0., 3., 1.,
-					 -1., 0., -3., -4., 5., 6.,
-					 2., 5., 3., 0., 1., 0.;
+			-1., 0., -3., -4., 5., 6.,
+			2., 5., 3., 0., 1., 0.;
 		Beq << 1., 2., 3.;
 
 		Aineq << 0., 1., 0., 1., 2., -1.,
-						 -1., 0., 2., 1., 1., 0.;
+			-1., 0., 2., 1., 1., 0.;
 		Bineq << -1., 2.5;
 
 		//with  x between ci and cs:
@@ -125,59 +125,50 @@ void ineqWithXBounds(Eigen::MatrixXd& Aineq, Eigen::VectorXd& Bineq,
 
 
 
-BOOST_AUTO_TEST_CASE(QuadProgDense)
+BOOST_AUTO_TEST_CASE(GurobiDense)
 {
 	QP1 qp1;
-	ineqWithXBounds(qp1.Aineq, qp1.Bineq, qp1.XL, qp1.XU);
 
 	int nrineq = static_cast<int>(qp1.Aineq.rows());
-	Eigen::QuadProgDense qp(qp1.nrvar, qp1.nreq, nrineq);
 
+	std::cout << "Constructing" << std::endl;
+	Eigen::GurobiDense qp(qp1.nrvar, qp1.nreq, nrineq);
+
+	std::cout << "Solve" << std::endl;
 	qp.solve(qp1.Q, qp1.C,
 		qp1.Aeq, qp1.Beq,
-		qp1.Aineq, qp1.Bineq);
-
-	BOOST_CHECK_SMALL((qp.result() - qp1.X).norm(), 1e-6);
-
-
-	// give the decomposition to quad prog
-	// ok that's not realy clever with QP1 because Q is identity.
-	Eigen::MatrixXd Linv = qp1.Q.llt().matrixU();
-	qp.solve(Linv.inverse(), qp1.C,
-		qp1.Aeq, qp1.Beq,
-		qp1.Aineq, qp1.Bineq, true);
+		qp1.Aineq, qp1.Bineq,
+		qp1.XL, qp1.XU);
 
 	BOOST_CHECK_SMALL((qp.result() - qp1.X).norm(), 1e-6);
 }
 
-
-
-BOOST_AUTO_TEST_CASE(QuadProgSparse)
-{
-	QP1 qp1;
-	ineqWithXBounds(qp1.Aineq, qp1.Bineq, qp1.XL, qp1.XU);
-
-	int nrineq = static_cast<int>(qp1.Aineq.rows());
-	Eigen::QuadProgSparse qp(qp1.nrvar, qp1.nreq, nrineq);
-
-	Eigen::SparseMatrix<double> SAeq(qp1.Aeq.sparseView());
-	Eigen::SparseMatrix<double> SAineq(qp1.Aineq.sparseView());
-	SAeq.makeCompressed();
-	SAineq.makeCompressed();
-
-	qp.solve(qp1.Q, qp1.C,
-		SAeq, qp1.Beq,
-		SAineq, qp1.Bineq);
-
-	BOOST_CHECK_SMALL((qp.result() - qp1.X).norm(), 1e-6);
-
-
-	// give the decomposition to quad prog
-	// ok that's not realy clever with QP1 because Q is identity.
-	Eigen::MatrixXd Linv = qp1.Q.llt().matrixU();
-	qp.solve(Linv.inverse(), qp1.C,
-		SAeq, qp1.Beq,
-		SAineq, qp1.Bineq, true);
-
-	BOOST_CHECK_SMALL((qp.result() - qp1.X).norm(), 1e-6);
-}
+//BOOST_AUTO_TEST_CASE(QuadProgSparse)
+//{
+//	QP1 qp1;
+//	ineqWithXBounds(qp1.Aineq, qp1.Bineq, qp1.XL, qp1.XU);
+//
+//	int nrineq = static_cast<int>(qp1.Aineq.rows());
+//	Eigen::QuadProgSparse qp(qp1.nrvar, qp1.nreq, nrineq);
+//
+//	Eigen::SparseMatrix<double> SAeq(qp1.Aeq.sparseView());
+//	Eigen::SparseMatrix<double> SAineq(qp1.Aineq.sparseView());
+//	SAeq.makeCompressed();
+//	SAineq.makeCompressed();
+//
+//	qp.solve(qp1.Q, qp1.C,
+//		SAeq, qp1.Beq,
+//		SAineq, qp1.Bineq);
+//
+//	BOOST_CHECK_SMALL((qp.result() - qp1.X).norm(), 1e-6);
+//
+//
+//	// give the decomposition to quad prog
+//	// ok that's not realy clever with QP1 because Q is identity.
+//	Eigen::MatrixXd Linv = qp1.Q.llt().matrixU();
+//	qp.solve(Linv.inverse(), qp1.C,
+//		SAeq, qp1.Beq,
+//		SAineq, qp1.Bineq, true);
+//
+//	BOOST_CHECK_SMALL((qp.result() - qp1.X).norm(), 1e-6);
+//}

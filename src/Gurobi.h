@@ -20,8 +20,11 @@
 #include <Eigen/Core>
 #include <Eigen/Sparse>
 
+//Gurobi
+#include <gurobi_c++.h>
+
 // eigen-quadprog
-#include "eigen_quadprog_api.h"
+#include "eigen_gurobi_api.h"
 
 namespace Eigen
 {
@@ -41,16 +44,22 @@ public:
 protected:
 	void fillQCBf(int nreq, int nrineq,
 		const MatrixXd& Q, const VectorXd& C,
-		const VectorXd& Beq, const VectorXd& Bineq,
-		bool isDecomp);
+		const VectorXd& Beq, const VectorXd& Bineq);
 
 protected:
 	MatrixXd Q_;
-	VectorXd C_, B_, X_;
-	int fail_;
-	VectorXi iact_;
+	VectorXd C_, Beq_, Bineq_, X_;
+	int fail_, nrvar_, nreq_, nrineq_;
 	VectorXi iter_;
 	VectorXd work_;
+
+	GRBEnv env_;
+	GRBModel model_;
+
+	GRBVar* vars_;
+	std::vector<GRBVar> lvars_, rvars_, eqvars_, ineqvars_;
+	GRBConstr* eqconstr_;
+	GRBConstr* ineqconstr_;
 };
 
 
@@ -65,29 +74,26 @@ public:
 	EIGEN_GUROBI_API bool solve(const MatrixXd& Q, const VectorXd& C,
 		const MatrixXd& Aeq, const VectorXd& Beq,
 		const MatrixXd& Aineq, const VectorXd& Bineq,
-		bool isDecomp=false);
-
-private:
-	MatrixXd A_;
+		const VectorXd& XL, const VectorXd& XU);
 };
 
 
-class GurobiSparse : public GurobiCommon
-{
-public:
-	EIGEN_GUROBI_API GurobiSparse();
-	EIGEN_GUROBI_API GurobiSparse(int nrvar, int nreq, int nrineq);
-
-	EIGEN_GUROBI_API void problem(int nrvar, int nreq, int nrineq);
-
-	EIGEN_GUROBI_API bool solve(const MatrixXd& Q, const VectorXd& C,
-		const SparseMatrix<double>& Aeq, const VectorXd& Beq,
-		const SparseMatrix<double>& Aineq, const VectorXd& Bineq,
-		bool isDecomp=false);
-
-private:
-	MatrixXd A_;
-	MatrixXi iA_;
-};
+//class GurobiSparse : public GurobiCommon
+//{
+//public:
+//	EIGEN_GUROBI_API GurobiSparse();
+//	EIGEN_GUROBI_API GurobiSparse(int nrvar, int nreq, int nrineq);
+//
+//	EIGEN_GUROBI_API void problem(int nrvar, int nreq, int nrineq);
+//
+//	EIGEN_GUROBI_API bool solve(const MatrixXd& Q, const VectorXd& C,
+//		const SparseMatrix<double>& Aeq, const VectorXd& Beq,
+//		const SparseMatrix<double>& Aineq, const VectorXd& Bineq,
+//		bool isDecomp=false);
+//
+//private:
+//	MatrixXd A_;
+//	MatrixXi iA_;
+//};
 
 } // namespace Eigen
