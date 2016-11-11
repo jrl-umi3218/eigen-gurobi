@@ -26,28 +26,17 @@
 namespace Eigen
 {
 
-extern "C" int qpgen1_(double* dmat, double* dvec, const int* fddmat,
-	const int* n, double* sol, double* crval, double* amat, const int* iamat,
-	double* bvec, const int* fdamat, const int* q, const int* meq, int* iact,
-	int* nact, int* iter, double* work, const int* ierr);
-
-extern "C" int qpgen2_(double* dmat, double* dvec, const int* fddmat,
-	const int* n, double* sol, double* crval, double* amat, double* bvec,
-	const int* fdamat, const int* q, const int* meq, int* iact, int* nact,
-	int* iter, double* work, const int* ierr);
-
-
 class GurobiCommon
 {
 public:
-	EIGEN_QUADPROG_API GurobiCommon();
+	EIGEN_GUROBI_API GurobiCommon();
 
-	EIGEN_QUADPROG_API const VectorXi& iter() const;
-	EIGEN_QUADPROG_API int fail() const;
+	EIGEN_GUROBI_API const VectorXi& iter() const;
+	EIGEN_GUROBI_API int fail() const;
 
-	EIGEN_QUADPROG_API const VectorXd& result() const;
+	EIGEN_GUROBI_API const VectorXd& result() const;
 
-	EIGEN_QUADPROG_API void problem(int nrvar, int nreq, int nrineq);
+	EIGEN_GUROBI_API void problem(int nrvar, int nreq, int nrineq);
 
 protected:
 	void fillQCBf(int nreq, int nrineq,
@@ -68,12 +57,12 @@ protected:
 class GurobiDense : public GurobiCommon
 {
 public:
-	EIGEN_QUADPROG_API GurobiDense();
-	EIGEN_QUADPROG_API GurobiDense(int nrvar, int nreq, int nrineq);
+	EIGEN_GUROBI_API GurobiDense();
+	EIGEN_GUROBI_API GurobiDense(int nrvar, int nreq, int nrineq);
 
-	EIGEN_QUADPROG_API void problem(int nrvar, int nreq, int nrineq);
+	EIGEN_GUROBI_API void problem(int nrvar, int nreq, int nrineq);
 
-	EIGEN_QUADPROG_API bool solve(const MatrixXd& Q, const VectorXd& C,
+	EIGEN_GUROBI_API bool solve(const MatrixXd& Q, const VectorXd& C,
 		const MatrixXd& Aeq, const VectorXd& Beq,
 		const MatrixXd& Aineq, const VectorXd& Bineq,
 		bool isDecomp=false);
@@ -86,12 +75,12 @@ private:
 class GurobiSparse : public GurobiCommon
 {
 public:
-	EIGEN_QUADPROG_API GurobiSparse();
-	EIGEN_QUADPROG_API GurobiSparse(int nrvar, int nreq, int nrineq);
+	EIGEN_GUROBI_API GurobiSparse();
+	EIGEN_GUROBI_API GurobiSparse(int nrvar, int nreq, int nrineq);
 
-	EIGEN_QUADPROG_API void problem(int nrvar, int nreq, int nrineq);
+	EIGEN_GUROBI_API void problem(int nrvar, int nreq, int nrineq);
 
-	EIGEN_QUADPROG_API bool solve(const MatrixXd& Q, const VectorXd& C,
+	EIGEN_GUROBI_API bool solve(const MatrixXd& Q, const VectorXd& C,
 		const SparseMatrix<double>& Aeq, const VectorXd& Beq,
 		const SparseMatrix<double>& Aineq, const VectorXd& Bineq,
 		bool isDecomp=false);
