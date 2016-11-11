@@ -163,23 +163,16 @@ bool GurobiDense::solve(const MatrixXd& Q, const VectorXd& C,
 	const MatrixXd& Aineq, const VectorXd& Bineq,
 	const VectorXd& XL, const VectorXd& XU)
 {
-	std::cout << "ENTER SOLVE" << std::endl;
 	//Objective
 	GRBQuadExpr qexpr;
 	qexpr.addTerms(Q.data(), rvars_.data(), lvars_.data(), static_cast<int>(Q.size()));
 
-	std::cout << "Linexpr" << std::endl;
 	GRBLinExpr lexpr;
-	std::cout << "Add terms" << std::endl;
 	lexpr.addTerms(C.data(), vars_, nrvar_);
-	std::cout << "Setting obj" << std::endl;
 	model_.setObjective(0.5*qexpr+lexpr);
 
-	std::cout << "Setting bounds..." << std::endl;
 	model_.set(GRB_DoubleAttr_LB, vars_, XL.data(), nrvar_);
-	std::cout << "XL Done" << std::endl;
 	model_.set(GRB_DoubleAttr_UB, vars_, XU.data(), nrvar_);
-	std::cout << "XU Done" << std::endl;
 
 	//Update eq and ineq, column by column
 	for(int i = 0; i < nrvar_; ++i)
@@ -199,8 +192,6 @@ bool GurobiDense::solve(const MatrixXd& Q, const VectorXd& C,
 	}
 
 	model_.optimize();
-
-	model_.write("test.lp");
 
 	bool success = model_.get(GRB_IntAttr_Status) == GRB_OPTIMAL;
 	double* result = model_.get(GRB_DoubleAttr_X, vars_, nrvar_);
