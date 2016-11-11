@@ -4,6 +4,8 @@ include(cmake/base.cmake)
 include(cmake/boost.cmake)
 include(cmake/eigen.cmake)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}")
+
 set(PROJECT_NAME eigen-gurobi)
 set(PROJECT_DESCRIPTION "Gurobi QP solver through Eigen3 library.")
 set(PROJECT_URL "https://github.com/haudren/eigen-gurobi")
@@ -41,7 +43,6 @@ find_package(GUROBI)
 if(NOT GUROBI_FOUND)
   message("Unable to find Gurobi. Make sure that the env GUROBI_HOME is set")
 else()
-  message("Found GUROBI!")
   include_directories(${GUROBI_INCLUDE_DIRS})
 endif()
 
