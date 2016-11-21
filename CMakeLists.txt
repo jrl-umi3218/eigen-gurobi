@@ -54,4 +54,10 @@ add_subdirectory(tests)
 # Add dependency towards the library in the pkg-config file.
 pkg_config_append_libs(${PROJECT_NAME})
 
+foreach(GUROLIB ${GUROBI_LIBRARIES})
+  pkg_config_append_libs(${GUROLIB})
+endforeach()
+
+pkg_config_append_cflags(-I"${GUROBI_INCLUDE_DIRS}")
+
 setup_project_finalize()

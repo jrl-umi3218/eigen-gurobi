@@ -2,7 +2,9 @@ set(SOURCES Gurobi.cpp)
 set(HEADERS eigen_gurobi_api.h Gurobi.h)
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES} ${HEADERS})
-target_link_libraries(${PROJECT_NAME} ${GUROBI_LIBRARIES})
+foreach(GUROBI_LIBRARY ${GUROBI_LIBRARIES})
+  target_link_libraries(${PROJECT_NAME} ${GUROBI_LIBRARY})
+endforeach()
 
 set(INSTALL_PATH include/${PROJECT_NAME})
 install(FILES ${HEADERS} DESTINATION ${INSTALL_PATH})
