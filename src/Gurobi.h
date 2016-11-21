@@ -42,11 +42,6 @@ public:
 	EIGEN_GUROBI_API void problem(int nrvar, int nreq, int nrineq);
 
 protected:
-	void fillQCBf(int nreq, int nrineq,
-		const MatrixXd& Q, const VectorXd& C,
-		const VectorXd& Beq, const VectorXd& Bineq);
-
-protected:
 	MatrixXd Q_;
 	VectorXd C_, Beq_, Bineq_, X_;
 	int fail_, nrvar_, nreq_, nrineq_, iter_;

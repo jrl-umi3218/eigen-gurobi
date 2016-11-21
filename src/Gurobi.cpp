@@ -125,18 +125,6 @@ void GurobiCommon::problem(int nrvar, int nreq, int nrineq)
 	}
 }
 
-void GurobiCommon::fillQCBf(int nreq, int nrineq,
-	const MatrixXd& Q, const VectorXd& C,
-	const VectorXd& Beq, const VectorXd& Bineq)
-{
-	Q_ = Q;
-	C_ = C;
-
-	Beq_ = Beq;
-	Bineq_ = Bineq;
-}
-
-
 /**
 	*												GurobiDense
 	*/
