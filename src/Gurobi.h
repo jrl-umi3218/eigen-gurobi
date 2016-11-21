@@ -78,22 +78,22 @@ public:
 };
 
 
-//class GurobiSparse : public GurobiCommon
-//{
-//public:
-//	EIGEN_GUROBI_API GurobiSparse();
-//	EIGEN_GUROBI_API GurobiSparse(int nrvar, int nreq, int nrineq);
-//
-//	EIGEN_GUROBI_API void problem(int nrvar, int nreq, int nrineq);
-//
-//	EIGEN_GUROBI_API bool solve(const MatrixXd& Q, const VectorXd& C,
-//		const SparseMatrix<double>& Aeq, const VectorXd& Beq,
-//		const SparseMatrix<double>& Aineq, const VectorXd& Bineq,
-//		bool isDecomp=false);
-//
-//private:
-//	MatrixXd A_;
-//	MatrixXi iA_;
-//};
+class GurobiSparse : public GurobiCommon
+{
+public:
+	EIGEN_GUROBI_API GurobiSparse();
+	EIGEN_GUROBI_API GurobiSparse(int nrvar, int nreq, int nrineq);
+
+	EIGEN_GUROBI_API void problem(int nrvar, int nreq, int nrineq);
+
+	EIGEN_GUROBI_API bool solve(const SparseMatrix<double>& Q, const SparseVector<double>& C,
+		const SparseMatrix<double>& Aeq, const SparseVector<double>& Beq,
+		const SparseMatrix<double>& Aineq, const SparseVector<double>& Bineq,
+		const VectorXd& XL, const VectorXd& XU);
+
+private:
+	MatrixXd A_;
+	MatrixXi iA_;
+};
 
 } // namespace Eigen

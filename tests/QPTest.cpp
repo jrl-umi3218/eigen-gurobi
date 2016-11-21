@@ -77,54 +77,6 @@ struct QP1
 };
 
 
-void ineqWithXBounds(Eigen::MatrixXd& Aineq, Eigen::VectorXd& Bineq,
-	const Eigen::VectorXd& XL, const Eigen::VectorXd& XU)
-{
-	double inf = std::numeric_limits<double>::infinity();
-
-	std::vector<std::pair<int, double> > lbounds, ubounds;
-
-	for(int i = 0; i < XL.rows(); ++i)
-	{
-		if(XL[i] != -inf)
-			lbounds.emplace_back(i, XL[i]);
-		if(XU[i] != inf)
-			ubounds.emplace_back(i, XU[i]);
-	}
-
-	long int nrconstr = Bineq.rows() + static_cast<long int>(lbounds.size()) +
-		static_cast<long int>(ubounds.size());
-
-	Eigen::MatrixXd A(Eigen::MatrixXd::Zero(nrconstr, Aineq.cols()));
-	Eigen::VectorXd B(Eigen::VectorXd::Zero(nrconstr));
-
-	A.block(0, 0, Aineq.rows(), Aineq.cols()) = Aineq;
-	B.segment(0, Bineq.rows()) = Bineq;
-
-	int start = static_cast<int>(Aineq.rows());
-
-	for(int i = 0; i < static_cast<int>(lbounds.size()); ++i)
-	{
-		const auto& b = lbounds[i];
-		A(start, b.first) = -1.;
-		B(start) = -b.second;
-		++start;
-	}
-
-	for(int i = 0; i < static_cast<int>(ubounds.size()); ++i)
-	{
-		const auto& b = ubounds[i];
-		A(start, b.first) = 1.;
-		B(start) = b.second;
-		++start;
-	}
-
-	Aineq = A;
-	Bineq = B;
-}
-
-
-
 BOOST_AUTO_TEST_CASE(GurobiDense)
 {
 	QP1 qp1;
@@ -143,32 +95,28 @@ BOOST_AUTO_TEST_CASE(GurobiDense)
 	BOOST_CHECK_SMALL((qp.result() - qp1.X).norm(), 1e-6);
 }
 
-//BOOST_AUTO_TEST_CASE(QuadProgSparse)
-//{
-//	QP1 qp1;
-//	ineqWithXBounds(qp1.Aineq, qp1.Bineq, qp1.XL, qp1.XU);
-//
-//	int nrineq = static_cast<int>(qp1.Aineq.rows());
-//	Eigen::QuadProgSparse qp(qp1.nrvar, qp1.nreq, nrineq);
-//
-//	Eigen::SparseMatrix<double> SAeq(qp1.Aeq.sparseView());
-//	Eigen::SparseMatrix<double> SAineq(qp1.Aineq.sparseView());
-//	SAeq.makeCompressed();
-//	SAineq.makeCompressed();
-//
-//	qp.solve(qp1.Q, qp1.C,
-//		SAeq, qp1.Beq,
-//		SAineq, qp1.Bineq);
-//
-//	BOOST_CHECK_SMALL((qp.result() - qp1.X).norm(), 1e-6);
-//
-//
-//	// give the decomposition to quad prog
-//	// ok that's not realy clever with QP1 because Q is identity.
-//	Eigen::MatrixXd Linv = qp1.Q.llt().matrixU();
-//	qp.solve(Linv.inverse(), qp1.C,
-//		SAeq, qp1.Beq,
-//		SAineq, qp1.Bineq, true);
-//
-//	BOOST_CHECK_SMALL((qp.result() - qp1.X).norm(), 1e-6);
-//}
+BOOST_AUTO_TEST_CASE(GurobiSparse)
+{
+	QP1 qp1;
+
+	Eigen::GurobiSparse qp(qp1.nrvar, qp1.nreq, qp1.nrineq);
+
+	Eigen::SparseMatrix<double> SQ(qp1.Q.sparseView());
+	Eigen::SparseMatrix<double> SC(qp1.C.sparseView());
+	Eigen::SparseMatrix<double> SAeq(qp1.Aeq.sparseView());
+	Eigen::SparseMatrix<double> SAineq(qp1.Aineq.sparseView());
+	Eigen::SparseVector<double> SBeq(qp1.Beq.sparseView());
+	Eigen::SparseVector<double> SBineq(qp1.Bineq.sparseView());
+
+	SQ.makeCompressed();
+	SC.makeCompressed();
+	SAeq.makeCompressed();
+	SAineq.makeCompressed();
+
+	qp.solve(SQ, SC,
+		SAeq, SBeq,
+		SAineq, SBineq,
+		qp1.XL, qp1.XU);
+
+	BOOST_CHECK_SMALL((qp.result() - qp1.X).norm(), 1e-6);
+}

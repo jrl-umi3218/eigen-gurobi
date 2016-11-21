@@ -206,79 +206,93 @@ bool GurobiDense::solve(const MatrixXd& Q, const VectorXd& C,
 	*/
 
 
-//GurobiSparse::GurobiSparse():
-//  A_(),
-//  iA_()
-//{ }
-//
-//
-//GurobiSparse::GurobiSparse(int nrvar, int nreq, int nrineq):
-//  A_(),
-//  iA_()
-//{
-//  problem(nrvar, nreq, nrineq);
-//}
+GurobiSparse::GurobiSparse()
+{ }
 
 
-//void GurobiSparse::problem(int nrvar, int nreq, int nrineq)
-//{
-	//GurobiCommon::problem(nrvar, nreq, nrineq);
-//	int nrconstr = nreq + nrineq;
-//
-//	A_.resize(nrvar, nrconstr);
-//	iA_.resize(nrvar + 1, nrconstr);
-//}
+GurobiSparse::GurobiSparse(int nrvar, int nreq, int nrineq)
+{
+  problem(nrvar, nreq, nrineq);
+}
 
 
-//bool GurobiSparse::solve(const MatrixXd& Q, const VectorXd& C,
-//	const SparseMatrix<double>& Aeq, const VectorXd& Beq,
-//	const SparseMatrix<double>& Aineq, const VectorXd& Bineq,
-//	bool isDecomp)
-//{
-//	int nrvar = static_cast<int>(C.rows());
-//	int nreq = static_cast<int>(Beq.rows());
-//	int nrineq = static_cast<int>(Bineq.rows());
-//
-//	int fddmat = static_cast<int>(Q_.rows());
-//	int n = nrvar;
-//	double crval;
-//	int fdamat = static_cast<int>(A_.rows());
-//	int q = nreq + nrineq;
-//	int meq = nreq;
-//	int nact;
+void GurobiSparse::problem(int nrvar, int nreq, int nrineq)
+{
+      GurobiCommon::problem(nrvar, nreq, nrineq);
+}
 
-//	fillQCBf(nreq, nrineq, Q, C, Beq, Bineq, isDecomp);
-//
-//	iA_.row(0).setZero();
-//
-//	// in A{eq,ineq} row is the constraint index, col is the variable index
-//	// so row its A_ col and col is A_ row.
-//	for(int k = 0; k < Aeq.outerSize(); ++k)
-//	{
-//		for(SparseMatrix<double>::InnerIterator it(Aeq, k); it; ++it)
-//		{
-//			int nrValCi = iA_(0, it.row()) += 1;
-//			iA_(nrValCi, it.row()) = it.col() + 1;
-//			A_(nrValCi - 1, it.row()) = it.value();
-//		}
-//	}
-//
-//	for(int k = 0; k < Aineq.outerSize(); ++k)
-//	{
-//		for(SparseMatrix<double>::InnerIterator it(Aineq, k); it; ++it)
-//		{
-//			int nrValCi = iA_(0, it.row() + nreq) += 1;
-//			iA_(nrValCi, it.row() + nreq) = it.col() + 1;
-//			A_(nrValCi - 1, it.row() + nreq) = -it.value();
-//		}
-//	}
-//
-//	qpgen1_(Q_.data(), C_.data(), &fddmat, &n, X_.data(), &crval,
-//		A_.data(), iA_.data(), B_.data(), &fdamat, &q, &meq, iact_.data(), &nact,
-//		iter_.data(), work_.data(), &fail_);
-//
-//	return fail_ == 0;
-//}
+bool GurobiSparse::solve(const SparseMatrix<double>& Q, const SparseVector<double>& C,
+	const SparseMatrix<double>& Aeq, const SparseVector<double>& Beq,
+	const SparseMatrix<double>& Aineq, const SparseVector<double>& Bineq,
+	const VectorXd& XL, const VectorXd& XU)
+{
 
+
+	//Objective: quadratic terms
+	GRBQuadExpr qexpr;
+	for(int k = 0; k<Q.outerSize(); ++k)
+	{
+		for (SparseMatrix<double>::InnerIterator it(Q,k); it; ++it)
+		{
+			qexpr.addTerm(0.5*it.value(), *(vars_+it.row()), *(vars_+it.col()));
+		}
+	}
+
+	//Objective: linear terms
+	for (SparseVector<double>::InnerIterator it(C); it; ++it)
+	{
+		qexpr.addTerm(it.value(), *(vars_+it.row()));
+	}
+
+	model_.setObjective(qexpr);
+
+	//Bounds
+	model_.set(GRB_DoubleAttr_LB, vars_, XL.data(), nrvar_);
+	model_.set(GRB_DoubleAttr_UB, vars_, XU.data(), nrvar_);
+
+	//Update eq
+	std::vector<double> zeros(static_cast<size_t>(nreq_), 0.0);
+	for(int k = 0; k < Aeq.outerSize(); ++k)
+	{
+		std::cout << "Eq col : " << k << std::endl;
+		model_.chgCoeffs(eqconstr_, eqvars_.data()+nreq_*k, zeros.data(), nreq_);
+		for (SparseMatrix<double>::InnerIterator it(Aeq,k); it; ++it)
+		{
+			std::cout << "Changing : " << it.row() << ", " << it.col() << std::endl;
+			model_.chgCoeff(*(eqconstr_+it.row()), *(vars_+it.col()), it.value());
+		}
+	}
+
+	//Update ineq
+	zeros.resize(static_cast<size_t>(nrineq_), 0.0);
+	for(int k = 0; k < Aineq.outerSize(); ++k)
+	{
+		std::cout << "Ineq col : " << k << std::endl;
+		model_.chgCoeffs(ineqconstr_, ineqvars_.data()+nrineq_*k, zeros.data(), nrineq_);
+		for (SparseMatrix<double>::InnerIterator it(Aineq,k); it; ++it)
+		{
+			model_.chgCoeff(*(ineqconstr_+it.row()), *(vars_+it.col()), it.value());
+		}
+	}
+
+	//Update RHSes
+	for(SparseVector<double>::InnerIterator it(Beq); it; ++it)
+	{
+		(eqconstr_+it.row())->set(GRB_DoubleAttr_RHS, it.value());
+	}
+
+	for(SparseVector<double>::InnerIterator it(Bineq); it; ++it)
+	{
+		(ineqconstr_+it.row())->set(GRB_DoubleAttr_RHS, it.value());
+	}
+
+	model_.optimize();
+
+	bool success = model_.get(GRB_IntAttr_Status) == GRB_OPTIMAL;
+	double* result = model_.get(GRB_DoubleAttr_X, vars_, nrvar_);
+	X_ = Map<VectorXd>(result, nrvar_);
+
+	return success;
+}
 
 } // namespace Eigen
