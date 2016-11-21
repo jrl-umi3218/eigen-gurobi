@@ -35,14 +35,14 @@ GurobiCommon::GurobiCommon():
 	nrvar_(0),
 	nreq_(0),
 	nrineq_(0),
-	iter_(2),
+	iter_(0),
 	env_(),
 	model_(env_)
 {
 }
 
 
-const VectorXi& GurobiCommon::iter() const
+int GurobiCommon::iter() const
 {
 	return iter_;
 }
@@ -193,7 +193,9 @@ bool GurobiDense::solve(const MatrixXd& Q, const VectorXd& C,
 
 	model_.optimize();
 
-	bool success = model_.get(GRB_IntAttr_Status) == GRB_OPTIMAL;
+	fail_ = model_.get(GRB_IntAttr_Status);
+	bool success = fail_ == GRB_OPTIMAL;
+	iter_ = model_.get(GRB_IntAttr_BarIterCount);
 	double* result = model_.get(GRB_DoubleAttr_X, vars_, nrvar_);
 	X_ = Map<VectorXd>(result, nrvar_);
 
@@ -288,8 +290,10 @@ bool GurobiSparse::solve(const SparseMatrix<double>& Q, const SparseVector<doubl
 
 	model_.optimize();
 
-	bool success = model_.get(GRB_IntAttr_Status) == GRB_OPTIMAL;
+	fail_ = model_.get(GRB_IntAttr_Status);
+	bool success = fail_ == GRB_OPTIMAL;
 	double* result = model_.get(GRB_DoubleAttr_X, vars_, nrvar_);
+	iter_ = model_.get(GRB_IntAttr_BarIterCount);
 	X_ = Map<VectorXd>(result, nrvar_);
 
 	return success;

@@ -34,7 +34,7 @@ class GurobiCommon
 public:
 	EIGEN_GUROBI_API GurobiCommon();
 
-	EIGEN_GUROBI_API const VectorXi& iter() const;
+	EIGEN_GUROBI_API int iter() const;
 	EIGEN_GUROBI_API int fail() const;
 
 	EIGEN_GUROBI_API const VectorXd& result() const;
@@ -49,8 +49,7 @@ protected:
 protected:
 	MatrixXd Q_;
 	VectorXd C_, Beq_, Bineq_, X_;
-	int fail_, nrvar_, nreq_, nrineq_;
-	VectorXi iter_;
+	int fail_, nrvar_, nreq_, nrineq_, iter_;
 
 	GRBEnv env_;
 	GRBModel model_;
