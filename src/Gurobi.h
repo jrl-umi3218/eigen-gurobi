@@ -51,7 +51,6 @@ protected:
 	VectorXd C_, Beq_, Bineq_, X_;
 	int fail_, nrvar_, nreq_, nrineq_;
 	VectorXi iter_;
-	VectorXd work_;
 
 	GRBEnv env_;
 	GRBModel model_;
@@ -90,10 +89,6 @@ public:
 		const SparseMatrix<double>& Aeq, const SparseVector<double>& Beq,
 		const SparseMatrix<double>& Aineq, const SparseVector<double>& Bineq,
 		const VectorXd& XL, const VectorXd& XU);
-
-private:
-	MatrixXd A_;
-	MatrixXi iA_;
 };
 
 } // namespace Eigen
