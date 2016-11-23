@@ -163,13 +163,21 @@ bool GurobiDense::solve(const MatrixXd& Q, const VectorXd& C,
 	model_.set(GRB_DoubleAttr_UB, vars_, XU.data(), nrvar_);
 
 	//Update eq and ineq, column by column
-    if (nreq_ > 0)
-	    for(int i = 0; i < nrvar_; ++i)
-		    model_.chgCoeffs(eqconstr_, eqvars_.data()+nreq_*i, Aeq.col(i).data(), static_cast<int>(Aeq.rows()));
+	if (nreq_ > 0)
+	{
+		for(int i = 0; i < nrvar_; ++i)
+		{
+			model_.chgCoeffs(eqconstr_, eqvars_.data()+nreq_*i, Aeq.col(i).data(), static_cast<int>(Aeq.rows()));
+		}
+	}
 
-    if (nrineq_ > 0)
-	    for(int i = 0; i < nrvar_; ++i)
-		    model_.chgCoeffs(ineqconstr_, ineqvars_.data()+nrineq_*i, Aineq.col(i).data(), static_cast<int>(Aineq.rows()));
+	if (nrineq_ > 0)
+	{
+		for(int i = 0; i < nrvar_; ++i)
+		{
+			model_.chgCoeffs(ineqconstr_, ineqvars_.data()+nrineq_*i, Aineq.col(i).data(), static_cast<int>(Aineq.rows()));
+		}
+	}
 
 	for(int i = 0; i < nreq_; ++i)
 	{
@@ -210,7 +218,7 @@ GurobiSparse::GurobiSparse(int nrvar, int nreq, int nrineq)
 
 void GurobiSparse::problem(int nrvar, int nreq, int nrineq)
 {
-      GurobiCommon::problem(nrvar, nreq, nrineq);
+	  GurobiCommon::problem(nrvar, nreq, nrineq);
 }
 
 bool GurobiSparse::solve(const SparseMatrix<double>& Q, const SparseVector<double>& C,
