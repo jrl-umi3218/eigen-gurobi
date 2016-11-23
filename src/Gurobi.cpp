@@ -163,11 +163,13 @@ bool GurobiDense::solve(const MatrixXd& Q, const VectorXd& C,
 	model_.set(GRB_DoubleAttr_UB, vars_, XU.data(), nrvar_);
 
 	//Update eq and ineq, column by column
-	for(int i = 0; i < nrvar_; ++i)
-	{
-		model_.chgCoeffs(eqconstr_, eqvars_.data()+nreq_*i, Aeq.col(i).data(), static_cast<int>(Aeq.rows()));
-		model_.chgCoeffs(ineqconstr_, ineqvars_.data()+nrineq_*i, Aineq.col(i).data(), static_cast<int>(Aineq.rows()));
-	}
+    if (nreq_ > 0)
+	    for(int i = 0; i < nrvar_; ++i)
+		    model_.chgCoeffs(eqconstr_, eqvars_.data()+nreq_*i, Aeq.col(i).data(), static_cast<int>(Aeq.rows()));
+
+    if (nrineq_ > 0)
+	    for(int i = 0; i < nrvar_; ++i)
+		    model_.chgCoeffs(ineqconstr_, ineqvars_.data()+nrineq_*i, Aineq.col(i).data(), static_cast<int>(Aineq.rows()));
 
 	for(int i = 0; i < nreq_; ++i)
 	{
