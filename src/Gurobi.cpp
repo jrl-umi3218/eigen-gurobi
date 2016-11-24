@@ -254,11 +254,9 @@ bool GurobiSparse::solve(const SparseMatrix<double>& Q, const SparseVector<doubl
 	std::vector<double> zeros(static_cast<size_t>(nreq_), 0.0);
 	for(int k = 0; k < Aeq.outerSize(); ++k)
 	{
-		std::cout << "Eq col : " << k << std::endl;
 		model_.chgCoeffs(eqconstr_, eqvars_.data()+nreq_*k, zeros.data(), nreq_);
 		for (SparseMatrix<double>::InnerIterator it(Aeq,k); it; ++it)
 		{
-			std::cout << "Changing : " << it.row() << ", " << it.col() << std::endl;
 			model_.chgCoeff(*(eqconstr_+it.row()), *(vars_+it.col()), it.value());
 		}
 	}
@@ -267,7 +265,6 @@ bool GurobiSparse::solve(const SparseMatrix<double>& Q, const SparseVector<doubl
 	zeros.resize(static_cast<size_t>(nrineq_), 0.0);
 	for(int k = 0; k < Aineq.outerSize(); ++k)
 	{
-		std::cout << "Ineq col : " << k << std::endl;
 		model_.chgCoeffs(ineqconstr_, ineqvars_.data()+nrineq_*k, zeros.data(), nrineq_);
 		for (SparseMatrix<double>::InnerIterator it(Aineq,k); it; ++it)
 		{
