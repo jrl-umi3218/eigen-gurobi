@@ -214,7 +214,7 @@ GurobiSparse::GurobiSparse(int nrvar, int nreq, int nrineq)
 
 void GurobiSparse::problem(int nrvar, int nreq, int nrineq)
 {
-	  GurobiCommon::problem(nrvar, nreq, nrineq);
+	GurobiCommon::problem(nrvar, nreq, nrineq);
 }
 
 bool GurobiSparse::solve(const SparseMatrix<double>& Q, const SparseVector<double>& C,
