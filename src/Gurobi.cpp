@@ -106,22 +106,18 @@ void GurobiCommon::problem(int nrvar, int nreq, int nrineq)
 	model_.set(GRB_CharAttr_Sense, eqconstr_, eqsense.data(), nreq);
 
 	eqvars_.reserve(static_cast<size_t>(nrvar*nreq));
-	for(int i = 0; i < nrvar; ++i) {
-		for(int j = 0; j < nreq; ++j)
-		{
-			eqvars_.push_back(*(vars_+i));
-		}
+	for(int i = 0; i < nrvar; ++i)
+	{
+		eqvars_.insert(eqvars_.end(), static_cast<size_t>(nreq), *(vars_+i));
 	}
 
 	ineqconstr_ = model_.addConstrs(nrineq);
 	std::vector<char> ineqsense(static_cast<size_t>(nrineq), '<');
 	model_.set(GRB_CharAttr_Sense, ineqconstr_, ineqsense.data(), nrineq);
 
-	for(int i = 0; i < nrvar; ++i) {
-		for(int j = 0; j < nrineq; ++j)
-		{
-			ineqvars_.push_back(*(vars_+i));
-		}
+	for(int i = 0; i < nrvar; ++i)
+	{
+		ineqvars_.insert(ineqvars_.end(), static_cast<size_t>(nrineq_), *(vars_+i));
 	}
 }
 
