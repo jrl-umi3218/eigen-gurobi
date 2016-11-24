@@ -145,19 +145,17 @@ void GurobiDense::updateConstr(GRBConstr* constrs, const std::vector<GRBVar>& va
     const Eigen::MatrixXd& A, const Eigen::VectorXd& b, int len)
 {
 	assert(A.rows() == len);
+	assert(b.rows() == len);
+
 	if (len > 0)
 	{
 		for(int i = 0; i < nrvar_; ++i)
 		{
 			model_.chgCoeffs(constrs, vars.data()+len*i, A.col(i).data(), static_cast<int>(A.rows()));
 		}
-
-		for(int i = 0; i < len; ++i)
-		{
-			(constrs+i)->set(GRB_DoubleAttr_RHS, b(i));
-		}
-
 	}
+
+	model_.set(GRB_DoubleAttr_RHS, constrs, b.data(), len);
 }
 
 
