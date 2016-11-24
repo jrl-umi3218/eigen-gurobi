@@ -215,21 +215,24 @@ void GurobiSparse::updateConstr(GRBConstr* constrs, const std::vector<GRBVar>& v
 			const Eigen::SparseMatrix<double>& A,
 			const Eigen::SparseVector<double>& b, int len)
 {
-	//Update constrs
-	std::vector<double> zeros(static_cast<size_t>(nreq_), 0.0);
-	for(int k = 0; k < A.outerSize(); ++k)
+	if(len > 0)
 	{
-		model_.chgCoeffs(constrs, vars.data()+len*k, zeros.data(), len);
-		for (SparseMatrix<double>::InnerIterator it(A,k); it; ++it)
+		//Update constrs
+		std::vector<double> zeros(static_cast<size_t>(len), 0.0);
+		for(int k = 0; k < A.outerSize(); ++k)
 		{
-			model_.chgCoeff(*(constrs+it.row()), *(vars_+it.col()), it.value());
+			model_.chgCoeffs(constrs, vars.data()+len*k, zeros.data(), len);
+			for (SparseMatrix<double>::InnerIterator it(A,k); it; ++it)
+			{
+				model_.chgCoeff(*(constrs+it.row()), *(vars_+it.col()), it.value());
+			}
 		}
-	}
 
-	//Update RHSes
-	for(SparseVector<double>::InnerIterator it(b); it; ++it)
-	{
-		(constrs+it.row())->set(GRB_DoubleAttr_RHS, it.value());
+		//Update RHSes
+		for(SparseVector<double>::InnerIterator it(b); it; ++it)
+		{
+			(constrs+it.row())->set(GRB_DoubleAttr_RHS, it.value());
+		}
 	}
 }
 
@@ -239,7 +242,6 @@ bool GurobiSparse::solve(const SparseMatrix<double>& Q, const SparseVector<doubl
 	const SparseMatrix<double>& Aineq, const SparseVector<double>& Bineq,
 	const VectorXd& XL, const VectorXd& XU)
 {
-
 
 	//Objective: quadratic terms
 	GRBQuadExpr qexpr;
