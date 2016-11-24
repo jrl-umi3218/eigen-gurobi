@@ -217,6 +217,29 @@ void GurobiSparse::problem(int nrvar, int nreq, int nrineq)
 	GurobiCommon::problem(nrvar, nreq, nrineq);
 }
 
+void GurobiSparse::updateConstr(GRBConstr* constrs, const std::vector<GRBVar>& vars,
+			const Eigen::SparseMatrix<double>& A,
+			const Eigen::SparseVector<double>& b, int len)
+{
+	//Update constrs
+	std::vector<double> zeros(static_cast<size_t>(nreq_), 0.0);
+	for(int k = 0; k < A.outerSize(); ++k)
+	{
+		model_.chgCoeffs(constrs, vars.data()+len*k, zeros.data(), len);
+		for (SparseMatrix<double>::InnerIterator it(A,k); it; ++it)
+		{
+			model_.chgCoeff(*(constrs+it.row()), *(vars_+it.col()), it.value());
+		}
+	}
+
+	//Update RHSes
+	for(SparseVector<double>::InnerIterator it(b); it; ++it)
+	{
+		(constrs+it.row())->set(GRB_DoubleAttr_RHS, it.value());
+	}
+}
+
+
 bool GurobiSparse::solve(const SparseMatrix<double>& Q, const SparseVector<double>& C,
 	const SparseMatrix<double>& Aeq, const SparseVector<double>& Beq,
 	const SparseMatrix<double>& Aineq, const SparseVector<double>& Bineq,
@@ -247,37 +270,8 @@ bool GurobiSparse::solve(const SparseMatrix<double>& Q, const SparseVector<doubl
 	model_.set(GRB_DoubleAttr_UB, vars_, XU.data(), nrvar_);
 
 	//Update eq
-	std::vector<double> zeros(static_cast<size_t>(nreq_), 0.0);
-	for(int k = 0; k < Aeq.outerSize(); ++k)
-	{
-		model_.chgCoeffs(eqconstr_, eqvars_.data()+nreq_*k, zeros.data(), nreq_);
-		for (SparseMatrix<double>::InnerIterator it(Aeq,k); it; ++it)
-		{
-			model_.chgCoeff(*(eqconstr_+it.row()), *(vars_+it.col()), it.value());
-		}
-	}
-
-	//Update ineq
-	zeros.resize(static_cast<size_t>(nrineq_), 0.0);
-	for(int k = 0; k < Aineq.outerSize(); ++k)
-	{
-		model_.chgCoeffs(ineqconstr_, ineqvars_.data()+nrineq_*k, zeros.data(), nrineq_);
-		for (SparseMatrix<double>::InnerIterator it(Aineq,k); it; ++it)
-		{
-			model_.chgCoeff(*(ineqconstr_+it.row()), *(vars_+it.col()), it.value());
-		}
-	}
-
-	//Update RHSes
-	for(SparseVector<double>::InnerIterator it(Beq); it; ++it)
-	{
-		(eqconstr_+it.row())->set(GRB_DoubleAttr_RHS, it.value());
-	}
-
-	for(SparseVector<double>::InnerIterator it(Bineq); it; ++it)
-	{
-		(ineqconstr_+it.row())->set(GRB_DoubleAttr_RHS, it.value());
-	}
+	updateConstr(eqconstr_, eqvars_, Aeq, Beq, nreq_);
+	updateConstr(ineqconstr_, ineqvars_, Aineq, Bineq, nrineq_);
 
 	model_.optimize();
 

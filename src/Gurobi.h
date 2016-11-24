@@ -88,6 +88,11 @@ public:
 		const SparseMatrix<double>& Aeq, const SparseVector<double>& Beq,
 		const SparseMatrix<double>& Aineq, const SparseVector<double>& Bineq,
 		const VectorXd& XL, const VectorXd& XU);
+
+private:
+	void updateConstr(GRBConstr* constrs, const std::vector<GRBVar>& vars,
+			const Eigen::SparseMatrix<double>& A,
+			const Eigen::SparseVector<double>& b, int len);
 };
 
 } // namespace Eigen
