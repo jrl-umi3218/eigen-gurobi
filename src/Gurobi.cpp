@@ -145,6 +145,25 @@ void GurobiDense::problem(int nrvar, int nreq, int nrineq)
 	GurobiCommon::problem(nrvar, nreq, nrineq);
 }
 
+void GurobiDense::updateConstr(GRBConstr* constrs, const std::vector<GRBVar>& vars,
+    const Eigen::MatrixXd& A, const Eigen::VectorXd& b, int len)
+{
+	assert(A.rows() == len);
+	if (len > 0)
+	{
+		for(int i = 0; i < nrvar_; ++i)
+		{
+			model_.chgCoeffs(constrs, vars.data()+len*i, A.col(i).data(), static_cast<int>(A.rows()));
+		}
+
+		for(int i = 0; i < len; ++i)
+		{
+			(constrs+i)->set(GRB_DoubleAttr_RHS, b(i));
+		}
+
+	}
+}
+
 
 bool GurobiDense::solve(const MatrixXd& Q, const VectorXd& C,
 	const MatrixXd& Aeq, const VectorXd& Beq,
@@ -163,31 +182,8 @@ bool GurobiDense::solve(const MatrixXd& Q, const VectorXd& C,
 	model_.set(GRB_DoubleAttr_UB, vars_, XU.data(), nrvar_);
 
 	//Update eq and ineq, column by column
-	if (nreq_ > 0)
-	{
-		for(int i = 0; i < nrvar_; ++i)
-		{
-			model_.chgCoeffs(eqconstr_, eqvars_.data()+nreq_*i, Aeq.col(i).data(), static_cast<int>(Aeq.rows()));
-		}
-	}
-
-	if (nrineq_ > 0)
-	{
-		for(int i = 0; i < nrvar_; ++i)
-		{
-			model_.chgCoeffs(ineqconstr_, ineqvars_.data()+nrineq_*i, Aineq.col(i).data(), static_cast<int>(Aineq.rows()));
-		}
-	}
-
-	for(int i = 0; i < nreq_; ++i)
-	{
-		(eqconstr_+i)->set(GRB_DoubleAttr_RHS, Beq(i));
-	}
-
-	for(int i = 0; i < nrineq_; ++i)
-	{
-		(ineqconstr_+i)->set(GRB_DoubleAttr_RHS, Bineq(i));
-	}
+	updateConstr(eqconstr_, eqvars_, Aeq, Beq, nreq_);
+	updateConstr(ineqconstr_, ineqvars_, Aineq, Bineq, nrineq_);
 
 	model_.optimize();
 

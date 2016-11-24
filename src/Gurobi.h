@@ -68,6 +68,11 @@ public:
 		const MatrixXd& Aeq, const VectorXd& Beq,
 		const MatrixXd& Aineq, const VectorXd& Bineq,
 		const VectorXd& XL, const VectorXd& XU);
+
+private:
+	void updateConstr(GRBConstr* constrs, const std::vector<GRBVar>& vars,
+		const Eigen::MatrixXd& A, const Eigen::VectorXd& b, int len);
+
 };
 
 
