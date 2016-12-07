@@ -120,3 +120,30 @@ BOOST_AUTO_TEST_CASE(GurobiSparse)
 
 	BOOST_CHECK_SMALL((qp.result() - qp1.X).norm(), 1e-6);
 }
+
+BOOST_AUTO_TEST_CASE(SolverParameters)
+{
+	QP1 qp1;
+
+	int nrineq = static_cast<int>(qp1.Aineq.rows());
+	double tol = 1e-8;
+	int warmStart = 2;
+
+	std::cout << "Constructing" << std::endl;
+	Eigen::GurobiDense qp(qp1.nrvar, qp1.nreq, nrineq);
+	qp.displayOutput(false);
+	qp.warmStart(warmStart);
+	qp.feasibilityTolerance(tol);
+	qp.optimalityTolerance(tol);
+	qp.inform();
+
+	BOOST_CHECK_SMALL(tol - qp.feasibilityTolerance(), 1e-8);
+	BOOST_CHECK_SMALL(tol - qp.optimalityTolerance(), 1e-8);
+	BOOST_CHECK_EQUAL(warmStart, qp.warmStart());
+
+	std::cout << "Solve" << std::endl;
+	BOOST_REQUIRE(qp.solve(qp1.Q, qp1.C, qp1.Aeq, qp1.Beq, qp1.Aineq, qp1.Bineq, qp1.XL, qp1.XU));
+
+	BOOST_CHECK_SMALL((qp.result() - qp1.X).norm(), 1e-6);
+	qp.inform();
+}

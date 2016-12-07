@@ -39,6 +39,19 @@ public:
 
 	EIGEN_GUROBI_API const VectorXd& result() const;
 
+	// -1 = default ('usually primal'), 0 = primal, 1 = dual, 2 = no warmstart
+	EIGEN_GUROBI_API int warmStart() const;  
+	EIGEN_GUROBI_API void warmStart(int warmStatus);
+
+	EIGEN_GUROBI_API void inform() const;
+	EIGEN_GUROBI_API void displayOutput(bool doDisplay);
+
+	EIGEN_GUROBI_API double feasibilityTolerance() const;
+	EIGEN_GUROBI_API void feasibilityTolerance(double tol);
+
+	EIGEN_GUROBI_API double optimalityTolerance() const;
+	EIGEN_GUROBI_API void optimalityTolerance(double tol);
+
 	EIGEN_GUROBI_API void problem(int nrvar, int nreq, int nrineq);
 
 protected:
