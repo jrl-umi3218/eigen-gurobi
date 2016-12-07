@@ -104,8 +104,7 @@ public:
 
 private:
 	void updateConstr(GRBConstr* constrs, const std::vector<GRBVar>& vars,
-			const Eigen::SparseMatrix<double>& A,
-			const Eigen::SparseVector<double>& b, int len);
+		const Eigen::SparseMatrix<double>& A, const Eigen::SparseVector<double>& b, int len);
 };
 
 } // namespace Eigen
