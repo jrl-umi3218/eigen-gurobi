@@ -32,6 +32,15 @@ namespace Eigen
 class GurobiCommon
 {
 public:
+	enum class WarmStatus : int
+	{
+		DEFAULT = -1,
+		PRIMAL = 0,
+		DUAL = 1, 
+		NONE = 2
+	};
+
+public:
 	EIGEN_GUROBI_API GurobiCommon();
 
 	EIGEN_GUROBI_API int iter() const;
@@ -40,8 +49,8 @@ public:
 	EIGEN_GUROBI_API const VectorXd& result() const;
 
 	// -1 = default ('usually primal'), 0 = primal, 1 = dual, 2 = no warmstart
-	EIGEN_GUROBI_API int warmStart() const;  
-	EIGEN_GUROBI_API void warmStart(int warmStatus);
+	EIGEN_GUROBI_API GurobiCommon::WarmStatus warmStart() const;  
+	EIGEN_GUROBI_API void warmStart(GurobiCommon::WarmStatus warmStatus);
 
 	EIGEN_GUROBI_API void inform() const;
 	EIGEN_GUROBI_API void displayOutput(bool doDisplay);

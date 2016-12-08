@@ -16,6 +16,8 @@
 // associated header
 #include "Gurobi.h"
 
+#include <type_traits>
+
 namespace Eigen
 {
 
@@ -59,15 +61,16 @@ const VectorXd& GurobiCommon::result() const
 	return X_;
 }
 
-int GurobiCommon::warmStart() const
+GurobiCommon::WarmStatus GurobiCommon::warmStart() const
 {
-	return model_.get(GRB_IntParam_MultiObjMethod);
+	int ws = model_.get(GRB_IntParam_MultiObjMethod);
+	return static_cast<WarmStatus>(ws);
 }
 
-void GurobiCommon::warmStart(int warmStatus)
+void GurobiCommon::warmStart(GurobiCommon::WarmStatus warmStatus)
 {
-	assert(tol >= -1 && tol <= 2);
-	model_.set(GRB_IntParam_MultiObjMethod, warmStatus);
+	using ut = std::underlying_type<GurobiCommon::WarmStatus>::type;
+	model_.set(GRB_IntParam_MultiObjMethod, static_cast<ut>(warmStatus));
 }
 
 void GurobiCommon::inform() const

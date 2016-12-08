@@ -16,6 +16,7 @@
 // includes
 // std
 #include <iostream>
+#include <type_traits>
 
 // boost
 #define BOOST_TEST_DYN_LINK
@@ -127,19 +128,20 @@ BOOST_AUTO_TEST_CASE(SolverParameters)
 
 	int nrineq = static_cast<int>(qp1.Aineq.rows());
 	double tol = 1e-8;
-	int warmStart = 2;
+	using WS = Eigen::GurobiCommon::WarmStatus;
+	using ut = std::underlying_type<WS>::type;
 
 	std::cout << "Constructing" << std::endl;
 	Eigen::GurobiDense qp(qp1.nrvar, qp1.nreq, nrineq);
 	qp.displayOutput(false);
-	qp.warmStart(warmStart);
+	qp.warmStart(WS::NONE);
 	qp.feasibilityTolerance(tol);
 	qp.optimalityTolerance(tol);
 	qp.inform();
 
 	BOOST_CHECK_SMALL(tol - qp.feasibilityTolerance(), 1e-8);
 	BOOST_CHECK_SMALL(tol - qp.optimalityTolerance(), 1e-8);
-	BOOST_CHECK_EQUAL(warmStart, qp.warmStart());
+	BOOST_CHECK_EQUAL(static_cast<ut>(WS::NONE), static_cast<ut>(qp.warmStart()));
 
 	std::cout << "Solve" << std::endl;
 	BOOST_REQUIRE(qp.solve(qp1.Q, qp1.C, qp1.Aeq, qp1.Beq, qp1.Aineq, qp1.Bineq, qp1.XL, qp1.XU));
