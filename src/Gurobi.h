@@ -32,12 +32,33 @@ namespace Eigen
 class GurobiCommon
 {
 public:
+	enum class WarmStatus : int
+	{
+		DEFAULT = -1,
+		PRIMAL = 0,
+		DUAL = 1, 
+		NONE = 2
+	};
+
+public:
 	EIGEN_GUROBI_API GurobiCommon();
 
 	EIGEN_GUROBI_API int iter() const;
 	EIGEN_GUROBI_API int fail() const;
 
 	EIGEN_GUROBI_API const VectorXd& result() const;
+
+	EIGEN_GUROBI_API GurobiCommon::WarmStatus warmStart() const;  
+	EIGEN_GUROBI_API void warmStart(GurobiCommon::WarmStatus warmStatus);
+
+	EIGEN_GUROBI_API void inform() const;
+	EIGEN_GUROBI_API void displayOutput(bool doDisplay);
+
+	EIGEN_GUROBI_API double feasibilityTolerance() const;
+	EIGEN_GUROBI_API void feasibilityTolerance(double tol);
+
+	EIGEN_GUROBI_API double optimalityTolerance() const;
+	EIGEN_GUROBI_API void optimalityTolerance(double tol);
 
 	EIGEN_GUROBI_API void problem(int nrvar, int nreq, int nrineq);
 
@@ -91,8 +112,7 @@ public:
 
 private:
 	void updateConstr(GRBConstr* constrs, const std::vector<GRBVar>& vars,
-			const Eigen::SparseMatrix<double>& A,
-			const Eigen::SparseVector<double>& b, int len);
+		const Eigen::SparseMatrix<double>& A, const Eigen::SparseVector<double>& b, int len);
 };
 
 } // namespace Eigen

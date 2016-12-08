@@ -16,6 +16,8 @@
 // associated header
 #include "Gurobi.h"
 
+#include <type_traits>
+
 namespace Eigen
 {
 
@@ -59,22 +61,135 @@ const VectorXd& GurobiCommon::result() const
 	return X_;
 }
 
+GurobiCommon::WarmStatus GurobiCommon::warmStart() const
+{
+	int ws = model_.get(GRB_IntParam_MultiObjMethod);
+	return static_cast<WarmStatus>(ws);
+}
+
+void GurobiCommon::warmStart(GurobiCommon::WarmStatus warmStatus)
+{
+	using ut = std::underlying_type<GurobiCommon::WarmStatus>::type;
+	model_.set(GRB_IntParam_MultiObjMethod, static_cast<ut>(warmStatus));
+}
+
+void GurobiCommon::inform() const
+{
+	switch(fail_)
+	{
+		case GRB_LOADED:
+			std::cout << "Model is loaded, but no solution information is available."
+					  << std::endl;
+			break;
+		case GRB_OPTIMAL:
+			std::cout << "Model was solved to optimality (subject to tolerances), and an optimal solution is available."
+					  << std::endl;
+			break;
+		case GRB_INFEASIBLE:
+			std::cout << "Model was proven to be infeasible."
+					  << std::endl;
+		case GRB_INF_OR_UNBD:
+			std::cout << "Model was proven to be either infeasible or unbounded. To obtain a more definitive conclusion,"
+						" set the DualReductions parameter to 0 and reoptimize."
+					  << std::endl;
+			break;
+		case GRB_UNBOUNDED:
+			std::cout << "Model was proven to be unbounded. "
+						"Important note: an unbounded status indicates the presence of an unbounded ray that allows the objective to improve without limit. "
+						"It says nothing about whether the model has a feasible solution. "
+						"If you require information on feasibility, you should set the objective to zero and reoptimize."
+					  << std::endl;
+			break;
+		case GRB_CUTOFF:
+			std::cout << "Optimal objective for model was proven to be worse than the value specified in the Cutoff parameter. "
+						"No solution information is available."
+					  << std::endl;
+			break;
+		case GRB_ITERATION_LIMIT:
+			std::cout << "Optimization terminated because the total number of simplex iterations performed exceeded the value specified in the IterationLimit parameter,"
+						" or because the total number of barrier iterations exceeded the value specified in the BarIterLimit parameter."
+					  << std::endl;
+			break;
+		case GRB_NODE_LIMIT:
+			std::cout << "Optimization terminated because the total number of branch-and-cut nodes explored exceeded the value specified in the NodeLimit parameter."
+					  << std::endl;
+			break;
+		case GRB_TIME_LIMIT:
+			std::cout << "Optimization terminated because the time expended exceeded the value specified in the TimeLimit parameter."
+					  << std::endl;
+			break;
+		case GRB_SOLUTION_LIMIT:
+			std::cout << "Optimization terminated because the number of solutions found reached the value specified in the SolutionLimit parameter."
+					  << std::endl;
+			break;
+		case GRB_INTERRUPTED:
+			std::cout << "Optimization was terminated by the user."
+					  << std::endl;
+			break;
+		case GRB_NUMERIC:
+			std::cout << "Optimization was terminated due to unrecoverable numerical difficulties."
+					  << std::endl;
+			break;
+		case GRB_SUBOPTIMAL:
+			std::cout << "Unable to satisfy optimality tolerances; a sub-optimal solution is available."
+					  << std::endl;
+			break;
+		case GRB_INPROGRESS:
+			std::cout << "An asynchronous optimization call was made, but the associated optimization run is not yet complete."
+					  << std::endl;
+			break;
+		case GRB_USER_OBJ_LIMIT:
+			std::cout << "User specified an objective limit (a bound on either the best objective or the best bound), and that limit has been reached."
+					  << std::endl;
+			break;
+		default:
+			std::cout << "The solver has not been runned yet"
+					  << std::endl;
+	}
+}
+
+void GurobiCommon::displayOutput(bool doDisplay)
+{
+	model_.set(GRB_IntParam_OutputFlag, doDisplay);
+}
+
+double GurobiCommon::feasibilityTolerance() const
+{
+	return model_.get(GRB_DoubleParam_FeasibilityTol);
+}
+
+void GurobiCommon::feasibilityTolerance(double tol)
+{
+	assert(1e-2 <= tol && tol <= 1e-9);
+	model_.set(GRB_DoubleParam_FeasibilityTol, tol);
+}
+
+double GurobiCommon::optimalityTolerance() const
+{
+	return model_.get(GRB_DoubleParam_OptimalityTol);
+}
+
+void GurobiCommon::optimalityTolerance(double tol)
+{
+	assert(1e-2 <= tol && tol <= 1e-9);
+	model_.set(GRB_DoubleParam_OptimalityTol, tol);
+}
 
 void GurobiCommon::problem(int nrvar, int nreq, int nrineq)
 {
 	for(int i = 0; i < nrvar_; ++i)
 	{
-	  model_.remove(*(vars_+i));
+		model_.remove(*(vars_+i));
 	}
 
 	for(int i = 0; i < nreq_; ++i)
 	{
-	  model_.remove(*(eqconstr_+i));
+		model_.remove(*(eqconstr_+i));
 	}
 
 	for(int i = 0; i < nrineq_; ++i)
 	{
-	  model_.remove(*(ineqconstr_+i));
+		model_.remove(*(ineqconstr_+i));
 	}
 
 	eqvars_.clear();
@@ -142,7 +257,7 @@ void GurobiDense::problem(int nrvar, int nreq, int nrineq)
 }
 
 void GurobiDense::updateConstr(GRBConstr* constrs, const std::vector<GRBVar>& vars,
-    const Eigen::MatrixXd& A, const Eigen::VectorXd& b, int len)
+	const Eigen::MatrixXd& A, const Eigen::VectorXd& b, int len)
 {
 	assert(A.rows() == len);
 	assert(b.rows() == len);
