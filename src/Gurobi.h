@@ -48,7 +48,6 @@ public:
 
 	EIGEN_GUROBI_API const VectorXd& result() const;
 
-	// -1 = default ('usually primal'), 0 = primal, 1 = dual, 2 = no warmstart
 	EIGEN_GUROBI_API GurobiCommon::WarmStatus warmStart() const;  
 	EIGEN_GUROBI_API void warmStart(GurobiCommon::WarmStatus warmStatus);
 
