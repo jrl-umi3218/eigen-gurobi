@@ -160,7 +160,7 @@ double GurobiCommon::feasibilityTolerance() const
 
 void GurobiCommon::feasibilityTolerance(double tol)
 {
-	assert(1e-2 <= tol && tol <= 1e-9);
+	assert(1e-2 >= tol && tol >= 1e-9);
 	model_.set(GRB_DoubleParam_FeasibilityTol, tol);
 }
 
@@ -171,7 +171,7 @@ double GurobiCommon::optimalityTolerance() const
 
 void GurobiCommon::optimalityTolerance(double tol)
 {
-	assert(1e-2 <= tol && tol <= 1e-9);
+	assert(1e-2 >= tol && tol >= 1e-9);
 	model_.set(GRB_DoubleParam_OptimalityTol, tol);
 }
 
