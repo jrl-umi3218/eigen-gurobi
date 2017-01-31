@@ -22,7 +22,7 @@ To compile you need the following tools:
 #### Building
 
 ```sh
-git clone --recursive https://github.com/jorisv/eigen-quadprog
+git clone --recursive https://github.com/jrl-umi3218/eigen-gurobi
 cd eigen-gurobi
 mkdir _build
 cd _build
