@@ -1,6 +1,15 @@
 # eigen-gurobi
 
-eigen-gurobi allow to use the Gurobi QP solver with the Eigen3 library.
+eigen-gurobi allow to use the Gurobi QP solver with the Eigen3 library. It follows
+the same general design principles as [eigen-qld](https://github.com/jrl-umi3218/eigen-qld)
+and [eigen-quadprog](https://github.com/jrl-umi3218/eigen-quadprog).
+
+The main strength of this particular solver is its ability to handle very large
+sparse problems (See for example [here](http://plato.asu.edu/ftp/milpc.html)) and
+its ability to handle integer variables.
+
+This library only allows to use real variables for the time being, but provides a
+sparse Eigen interface to Gurobi.
 
 ## Installing
 
