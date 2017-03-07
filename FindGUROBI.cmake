@@ -1,4 +1,4 @@
-#### Taken from http://www.openflipper.org/svnrepo/CoMISo/trunk/CoMISo/cmake/FindGUROBI.cmake
+#### Taken from http://www.openflipper.org/svnrepo/CoMISo/trunk/CoMISo/cmake/FindGUROBI.cmake with slight modifications
 
 
 # - Try to find GUROBI
@@ -14,39 +14,39 @@ if (GUROBI_INCLUDE_DIR)
   set(GUROBI_LIBRARIES "${GUROBI_LIBRARY};${GUROBI_CXX_LIBRARY}" )
 else (GUROBI_INCLUDE_DIR)
 
-find_path(GUROBI_INCLUDE_DIR 
+find_path(GUROBI_INCLUDE_DIR
           NAMES gurobi_c++.h
           PATHS "$ENV{GUROBI_HOME}/include"
                   "/Library/gurobi502/mac64/include"
                  "C:\\libs\\gurobi502\\include"
           )
-
 find_library( GUROBI_LIBRARY
               NAMES gurobi
-        gurobi45
-        gurobi46
-        gurobi50
-        gurobi51
-        gurobi52
-        gurobi55
-        gurobi56
-        gurobi60
-        gurobi65
-        gurobi70
-              PATHS "$ENV{GUROBI_HOME}/lib"
-                    "/Library/gurobi502/mac64/lib"
-                    "C:\\libs\\gurobi502\\lib"
+										gurobi70
+		    					  gurobi45
+		    						gurobi46
+        						gurobi50
+        						gurobi51
+        						gurobi52
+        						gurobi55
+        						gurobi56
+        						gurobi60
+        						gurobi65
+              			PATHS "$ENV{GUROBI_HOME}/lib"
+                    			"/Library/gurobi70/mac64/lib"
+                    			"C:\\libs\\gurobi70\\lib"
               )
 
 find_library( GUROBI_CXX_LIBRARY
               NAMES gurobi_c++
               PATHS "$ENV{GUROBI_HOME}/lib"
-                    "/Library/gurobi502/mac64/lib"
-                    "C:\\libs\\gurobi502\\lib"
+                    "/Library/gurobi70/mac64/lib"
+                    "C:\\libs\\gurobi70\\lib"
               )
 
 set(GUROBI_INCLUDE_DIRS "${GUROBI_INCLUDE_DIR}" )
-set(GUROBI_LIBRARIES "${GUROBI_LIBRARY};${GUROBI_CXX_LIBRARY}" )
+# It is very important
+set(GUROBI_LIBRARIES ${GUROBI_CXX_LIBRARY} ${GUROBI_LIBRARY})
 
 # use c++ headers as default
 # set(GUROBI_COMPILER_FLAGS "-DIL_STD" CACHE STRING "Gurobi Compiler Flags")
